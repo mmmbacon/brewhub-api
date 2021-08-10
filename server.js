@@ -16,4 +16,4 @@ app.get('/breweries/all', async function (req, res) {
   const result = await queryModel.findAll()
   res.json(result)
 })
-   
+
