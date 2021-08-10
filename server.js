@@ -1,19 +1,19 @@
-const express = require('express')
-const cors = require('cors')
-const app = express()
-const port = 5000
-require('dotenv').config()
+const express = require('express');
+const cors = require('cors');
 
-const queryModel = require('./models').Brewery
+const app = express();
+const port = 5000;
+require('dotenv').config();
 
-app.use(cors())
+const queryModel = require('./models').Brewery;
+
+app.use(cors());
 
 app.listen(process.env.PORT || port, () => {
-  console.log(`Server is listening`)
-})
+  console.log('Server is listening');
+});
 
-app.get('/breweries/all', async function (req, res) {
-  const result = await queryModel.findAll()
-  res.json(result)
-})
-
+app.get('/breweries/all', async (req, res) => {
+  const result = await queryModel.findAll();
+  res.json(result);
+});
