@@ -75,3 +75,7 @@ Run the server:
 
 `$ npm start`
 
+Endpoints currently Available:
+
+`/breweries/all` - All Canadian breweries
+
