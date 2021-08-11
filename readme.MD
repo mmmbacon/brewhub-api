@@ -1,4 +1,4 @@
-# Brewhub-API
+# 🍻 Brewhub-API
 
 A REST API which provides access to Canadian breweries information. If you don't see your brewery listed, please submit an issue with the following information:
 
