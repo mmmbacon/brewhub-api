@@ -17,14 +17,6 @@ app.listen(process.env.PORT || port, () => {
 });
 
 /**
- * Endpoint for fetching all breweries
- */
-// app.get('/breweries/all', async (req, res) => {
-//   const result = await queryModel.findAll();
-//   res.json(result);
-// });
-
-/**
  * Endpoint for fetching breweries by city
  */
 app.get('/breweries', async (req, res) => {
@@ -50,7 +42,7 @@ app.get('/breweries', async (req, res) => {
           [Sequelize.Op.iLike]: by_city,
         },
       },
-      attributes: { exclude: ['virtual_fields'] }, // general comment for now
+      attributes: { exclude: ['distance'] },
     });
   }
 
@@ -74,6 +66,18 @@ app.get('/breweries', async (req, res) => {
 
     // Sort ascending
     result.sort((a, b) => a.distance - b.distance);
+  }
+
+  // Returns breweries by given name (partial, case-insensitive)
+  if (by_name) {
+    result = await queryModel.findAll({
+      where: {
+        name: {
+          [Sequelize.Op.iLike]: `%${by_name}%`,
+        },
+      },
+      attributes: { exclude: ['distance'] },
+    });
   }
 
   res.json(result);
