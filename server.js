@@ -5,15 +5,15 @@ const Sequelize = require('sequelize');
 const { getDistanceFromLatLonInKm } = require('./helpers');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 require('dotenv').config();
 
 const queryModel = require('./models').Brewery;
 
 app.use(cors());
 
-app.listen(process.env.PORT || port, () => {
-  console.log('Server is listening');
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });
 
 /**
