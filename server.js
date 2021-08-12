@@ -29,10 +29,65 @@ app.get('/breweries', async (req, res) => {
     by_type,
     page,
     per_page,
-    sort,
+    order,
   } = req.query;
 
   let result = {};
+
+  // Validate inputs - Default numbers if fail coercion
+  const vPage = Number(page) || 0;
+  const vPerPage = Number(per_page) || 20;
+
+  /**
+   *
+   * @param {Array<Results>} results Results array to be sorted
+   * @param {String} sortBy Value of each result object to compare against
+   * @param {*} orderBy Order of sorting 'ASC or DESC'
+   * @returns {Array} Sorted results array
+   */
+  const sortResult = (results, sortBy, orderBy) => {
+    let vSort = 'desc'; // Default sort descending
+
+    // Validate the order parameter
+    if (orderBy.toUpperCase() === 'DESC' || orderBy.toUpperCase() === 'ASC') {
+      vSort = orderBy;
+    }
+
+    // Sort the results
+    if (orderBy) {
+      if (vSort === 'desc' || vSort === 'DESC') {
+        return results.sort((a, b) => {
+          const itemA = a[sortBy].toUpperCase(); // ignore upper and lowercase
+          const itemB = b[sortBy].toUpperCase(); // ignore upper and lowercase
+          return itemA > itemB ? -1 : 1;
+        });
+      }
+    }
+
+    // Default sort if there is no order provided to function
+    return results.sort((a, b) => {
+      const itemA = a[sortBy].toUpperCase(); // ignore upper and lowercase
+      const itemB = b[sortBy].toUpperCase(); // ignore upper and lowercase
+      return itemA > itemB ? 1 : -1;
+    });
+  };
+
+  // Returns all breweries
+  if (
+    !by_city
+    && !by_dist
+    && !by_name
+    && !by_province
+    && !by_postal
+    && !by_type) {
+    result = await queryModel.findAll({
+      offset: vPage,
+      limit: vPerPage,
+      attributes: { exclude: ['distance'] },
+    });
+
+    sortResult(result, 'name', order || 'asc');
+  }
 
   // Returns breweries by city
   if (by_city) {
@@ -42,6 +97,8 @@ app.get('/breweries', async (req, res) => {
           [Sequelize.Op.iLike]: by_city,
         },
       },
+      offset: vPage,
+      limit: vPerPage,
       attributes: { exclude: ['distance'] },
     });
   }
@@ -50,7 +107,10 @@ app.get('/breweries', async (req, res) => {
   if (by_dist) {
     const [lat, long] = by_dist.split(',');
 
-    result = await queryModel.findAll();
+    result = await queryModel.findAll({
+      offset: vPage,
+      limit: vPerPage,
+    });
 
     // Set our computed virtual field 'distance'
     result.map((row) => {
@@ -64,8 +124,7 @@ app.get('/breweries', async (req, res) => {
       return brewery;
     });
 
-    // Sort ascending
-    result.sort((a, b) => a.distance - b.distance);
+    sortResult(result, 'distance', order || 'asc');
   }
 
   // Returns breweries by given name (partial, case-insensitive)
@@ -76,8 +135,58 @@ app.get('/breweries', async (req, res) => {
           [Sequelize.Op.iLike]: `%${by_name}%`,
         },
       },
+      offset: vPage,
+      limit: vPerPage,
       attributes: { exclude: ['distance'] },
     });
+
+    sortResult(result, 'name', order || 'asc');
+  }
+
+  // Returns breweries by province (case-insensitive)
+  if (by_province) {
+    result = await queryModel.findAll({
+      where: {
+        province: {
+          [Sequelize.Op.iLike]: `${by_province}%`,
+        },
+      },
+      offset: vPage,
+      limit: vPerPage,
+      attributes: { exclude: ['distance'] },
+    });
+  }
+
+  // Returns breweries by postal code (partial, case-insensitive)
+  if (by_postal) {
+    result = await queryModel.findAll({
+      where: {
+        postal_code: {
+          [Sequelize.Op.iLike]: `%${by_postal}%`,
+        },
+      },
+      offset: vPage,
+      limit: vPerPage,
+      attributes: { exclude: ['distance'] },
+    });
+
+    sortResult(result, 'postal_code', order || 'asc');
+  }
+
+  // Returns breweries by type (case-insensitive)
+  if (by_type) {
+    result = await queryModel.findAll({
+      where: {
+        type: {
+          [Sequelize.Op.iLike]: `${by_type}`,
+        },
+      },
+      offset: vPage,
+      limit: vPerPage,
+      attributes: { exclude: ['distance'] },
+    });
+
+    sortResult(result, 'type', order || 'asc');
   }
 
   res.json(result);
