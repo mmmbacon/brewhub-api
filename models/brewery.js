@@ -1,7 +1,8 @@
-'use strict';
 const {
-  Model
+  Model,
 } = require('sequelize');
+const { getDistanceFromLatLonInKm } = require('../helpers');
+
 module.exports = (sequelize, DataTypes) => {
   class Brewery extends Model {
     /**
@@ -12,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
     }
-  };
+  }
   Brewery.init({
     name: DataTypes.STRING,
     type: DataTypes.STRING,
@@ -31,10 +32,12 @@ module.exports = (sequelize, DataTypes) => {
     established: DataTypes.INTEGER,
     social1: DataTypes.STRING,
     social2: DataTypes.STRING,
-    social3: DataTypes.STRING
+    social3: DataTypes.STRING,
+    distance: DataTypes.VIRTUAL,
   }, {
     sequelize,
     modelName: 'Brewery',
   });
+
   return Brewery;
 };
